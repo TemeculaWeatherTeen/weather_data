@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fa">
+  <title>Temecula Weather Records</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #17212b;
+      background: #f7f8fa;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { width: min(100% - 32px, 1040px); margin: 0 auto; padding: 48px 0 64px; }
+    header { margin-bottom: 30px; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 4vw, 2.4rem); letter-spacing: -.035em; font-weight: 650; }
+    .intro { margin: 0; color: #5b6672; line-height: 1.6; }
+    .date-picker { position: relative; display: inline-block; margin: 24px 0 12px; }
+    .date-button { display: inline-flex; align-items: center; gap: 12px; border: 1px solid #cbd3dc; border-radius: 8px; background: white; padding: 11px 15px; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
+    .date-button:hover, .date-button[aria-expanded="true"] { border-color: #3478c8; }
+    .chevron { width: 8px; height: 8px; border-right: 1.7px solid currentColor; border-bottom: 1.7px solid currentColor; transform: rotate(45deg) translateY(-2px); }
+    .date-menu { position: absolute; z-index: 2; top: calc(100% + 6px); left: 0; min-width: 240px; padding: 5px; background: white; border: 1px solid #d5dce4; border-radius: 8px; box-shadow: 0 8px 24px #17212b18; }
+    .date-menu[hidden] { display: none; }
+    .date-option { width: 100%; text-align: left; border: 0; background: transparent; padding: 10px; border-radius: 5px; color: inherit; font: inherit; cursor: pointer; }
+    .date-option:hover, .date-option[aria-selected="true"] { background: #eef5fc; }
+    #weather-data[hidden] { display: none; }
+    .section-heading { margin: 20px 0 16px; font-size: 1.3rem; font-weight: 620; }
+    .chart-card { background: white; border: 1px solid #e0e5eb; border-radius: 10px; padding: 18px 18px 12px; margin: 14px 0; box-shadow: 0 2px 6px #17212b08; }
+    .chart-title { margin: 0 0 8px; font-size: 1rem; font-weight: 620; }
+    .chart-wrap { width: 100%; overflow-x: auto; }
+    svg.chart { display: block; width: 100%; min-width: 540px; height: auto; }
+    .grid { stroke: #e7ebef; stroke-width: 1; }
+    .axis { stroke: #aeb8c2; stroke-width: 1; }
+    .axis-label { fill: #66717d; font-size: 11px; }
+    .series { fill: none; stroke: #2878bd; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+    .point { fill: #2878bd; }
+    .chart-note { margin: 12px 0 0; color: #6b7580; font-size: .86rem; line-height: 1.5; }
+    footer { margin-top: 26px; color: #6b7580; font-size: .84rem; line-height: 1.55; }
+    @media (max-width: 600px) { main { padding-top: 32px; } .chart-card { padding: 14px 12px 10px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Temecula Weather Records</h1>
+      <p class="intro">Personal weather observations recorded during severe thunderstorms in Temecula, California.</p>
+      <div class="date-picker">
+        <button class="date-button" id="date-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="date-menu">
+          <span id="button-label">Select a date</span><span class="chevron" aria-hidden="true"></span>
+        </button>
+        <div class="date-menu" id="date-menu" role="listbox" aria-label="Recorded dates" hidden>
+          <button class="date-option" type="button" role="option" aria-selected="false" data-date="2026-09-08">September 8, 2026</button>
+        </div>
+      </div>
+    </header>
+
+    <section id="weather-data" aria-live="polite" hidden>
+      <h2 class="section-heading">September 8, 2026 <span style="font-weight:400;color:#6b7580">· StormSense Mini · PDT</span></h2>
+      <div id="charts"></div>
+      <p class="chart-note">These charts are visual reconstructions from the supplied chart images. The original CSV files were not available, so plotted values and times are approximate rather than exact raw measurements.</p>
+    </section>
+    <footer>Weather observations are personal records and are not an official forecast or severe-weather warning.</footer>
+  </main>
+
+  <script>
+    // Approximate values transcribed from the plotted lines in the supplied images.
+    // Each entry is [minutes after 17:15, measured value].
+    const charts = [
+      {
+        title: 'Temperature', unit: '°C', min: 24, max: 33,
+        ticks: [24, 26, 28, 30, 32],
+        data: [[0.6,26.8],[0.8,27.0],[1.0,27.2],[1.3,27.3],[1.5,27.4],[1.7,27.6],[2.0,27.6],[2.3,27.6],[2.5,28.0],[2.8,28.0],[3.1,28.0],[3.2,28.5],[3.6,28.5],[3.7,28.9],[4.3,28.9],[4.5,29.6],[8.4,29.6],[8.6,31.4],[9.2,31.4],[9.4,31.9],[10.6,31.9],[12.5,32.3],[14.4,32.5],[17.7,32.5],[17.85,28.5],[18.05,28.5],[18.2,27.9],[21.0,27.9],[21.15,24.3],[21.3,24.2]]
+      },
+      {
+        title: 'Relative Humidity', unit: '%', min: 40, max: 88,
+        ticks: [40, 50, 60, 70, 80],
+        data: [[0.6,65],[0.8,63],[1.0,63],[1.3,63],[1.5,62],[1.7,61],[2.0,61],[2.3,61],[2.5,60],[2.8,60],[3.1,60],[3.2,58],[3.6,58],[3.7,57],[4.3,57],[4.5,55],[8.4,55],[8.6,45],[9.2,45],[9.4,43],[10.6,43],[12.5,42],[14.4,43],[17.7,43],[17.85,71],[18.05,71],[18.2,74],[21.0,74],[21.15,85],[21.3,86]]
+      },
+      {
+        title: 'Pressure', unit: 'hPa', min: 978.15, max: 978.95,
+        ticks: [978.2, 978.3, 978.4, 978.5, 978.6, 978.7, 978.8, 978.9],
+        data: [[0.5,978.2],[0.65,978.4],[0.8,978.3],[1.0,978.3],[1.1,978.4],[1.25,978.3],[1.4,978.3],[1.6,978.3],[1.75,978.4],[2.1,978.4],[2.25,978.3],[3.3,978.3],[3.45,978.4],[8.4,978.4],[8.55,978.2],[9.8,978.2],[11.7,978.3],[13.6,978.6],[16.9,978.6],[17.05,978.9],[20.9,978.9],[21.05,978.7],[21.2,978.7]]
+      }
+    ];
+
+    const dateButton = document.querySelector('#date-button');
+    const dateMenu = document.querySelector('#date-menu');
+    const dateOption = document.querySelector('.date-option');
+    const weatherSection = document.querySelector('#weather-data');
+
+    function closeMenu() {
+      dateMenu.hidden = true;
+      dateButton.setAttribute('aria-expanded', 'false');
+    }
+    dateButton.addEventListener('click', () => {
+      const isOpen = dateButton.getAttribute('aria-expanded') === 'true';
+      dateMenu.hidden = isOpen;
+      dateButton.setAttribute('aria-expanded', String(!isOpen));
+      if (!isOpen) dateOption.focus();
+    });
+    dateOption.addEventListener('click', () => {
+      document.querySelector('#button-label').textContent = 'September 8, 2026';
+      dateOption.setAttribute('aria-selected', 'true');
+      weatherSection.hidden = false;
+      closeMenu();
+      renderCharts();
+    });
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.date-picker')) closeMenu();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { closeMenu(); dateButton.focus(); }
+    });
+
+    function renderCharts() {
+      const container = document.querySelector('#charts');
+      if (container.childElementCount) return;
+      charts.forEach((chart, index) => {
+        const card = document.createElement('article');
+        card.className = 'chart-card';
+        const title = document.createElement('h3');
+        title.className = 'chart-title';
+        title.textContent = chart.title;
+        const wrap = document.createElement('div');
+        wrap.className = 'chart-wrap';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'chart');
+        svg.setAttribute('viewBox', '0 0 760 280');
+        svg.setAttribute('role', 'img');
+        svg.setAttribute('aria-labelledby', `chart-title-${index}`);
+        const accessibleTitle = document.createElementNS(svg.namespaceURI, 'title');
+        accessibleTitle.setAttribute('id', `chart-title-${index}`);
+        accessibleTitle.textContent = `${chart.title} readings on September 8, 2026`;
+        svg.append(accessibleTitle);
+        const left = 58, right = 744, top = 14, bottom = 225;
+        const x = minute => left + (minute / 21.5) * (right - left);
+        const y = value => bottom - ((value - chart.min) / (chart.max - chart.min)) * (bottom - top);
+        chart.ticks.forEach(tick => {
+          const yy = y(tick);
+          svg.append(makeSvg('line', { x1:left, y1:yy, x2:right, y2:yy, class:'grid' }));
+          const label = makeSvg('text', { x:left-9, y:yy+4, 'text-anchor':'end', class:'axis-label' });
+          label.textContent = chart.unit === 'hPa' ? tick.toFixed(1) : tick;
+          svg.append(label);
+        });
+        svg.append(makeSvg('line', { x1:left, y1:top, x2:left, y2:bottom, class:'axis' }));
+        svg.append(makeSvg('line', { x1:left, y1:bottom, x2:right, y2:bottom, class:'axis' }));
+        [0,5,10,15,20].forEach(minute => {
+          const xx = x(minute);
+          svg.append(makeSvg('line', { x1:xx, y1:bottom, x2:xx, y2:bottom+4, class:'axis' }));
+          const label = makeSvg('text', { x:xx, y:bottom+20, 'text-anchor':'middle', class:'axis-label' });
+          label.textContent = `17:${String(15+minute).padStart(2,'0')}`;
+          svg.append(label);
+        });
+        const yLabel = makeSvg('text', { x:15, y:(top+bottom)/2, transform:`rotate(-90 15 ${(top+bottom)/2})`, 'text-anchor':'middle', class:'axis-label' });
+        yLabel.textContent = `${chart.title} (${chart.unit})`;
+        svg.append(yLabel);
+        const xLabel = makeSvg('text', { x:(left+right)/2, y:269, 'text-anchor':'middle', class:'axis-label' });
+        xLabel.textContent = 'Time (PDT)';
+        svg.append(xLabel);
+        const points = chart.data.map(([minute,value]) => `${x(minute)},${y(value)}`).join(' ');
+        svg.append(makeSvg('polyline', { points, class:'series' }));
+        chart.data.forEach(([minute,value]) => svg.append(makeSvg('circle', { cx:x(minute), cy:y(value), r:2.5, class:'point' })));
+        wrap.append(svg);
+        card.append(title, wrap);
+        container.append(card);
+      });
+    }
+
+    function makeSvg(name, attributes) {
+      const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+      Object.entries(attributes).forEach(([key,value]) => element.setAttribute(key, value));
+      return element;
+    }
+  </script>
+</body>
+</html>
