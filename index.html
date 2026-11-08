@@ -52,7 +52,7 @@
 
     <section id="temecula" hidden>
       <h2>September 8, 2026 · Temecula, California</h2>
-      <p class="muted">StormSense Mini readings · approximately 5:15–5:37 PM PDT</p>
+      <p class="muted">Tornado Probe Intercept · approximately 5:15–5:37 PM PDT</p>
       <div id="temecula-charts"></div>
       <p class="note">These charts are approximate visual reconstructions from the supplied chart images. Exact raw CSV readings were not available.</p>
     </section>
@@ -60,15 +60,14 @@
     <section id="north-port" hidden>
       <h2>July 30, 2026 · North Port, Florida</h2>
       <p class="muted">Weather observations and lightning distance. The recording was noticed at about 7:24 AM; this is not treated as the recording start time. The CSV's elapsed video time and Clock Time values are shown as provided.</p>
-      <a class="download" href="csv/weather_data.csv" download>Download the North Port weather CSV</a>
-      <figure class="card"><h3>Humidity</h3><img class="chart-image" src="images/humidity.png" alt="Humidity chart for the July 30, 2026 North Port, Florida recording"></figure>
-      <figure class="card"><h3>Lightning Distance</h3><img class="chart-image" src="images/lightning_distance.png" alt="Lightning distance chart for the July 30, 2026 North Port, Florida recording"></figure>
-      <figure class="card"><h3>Temperature</h3><img class="chart-image" src="images/temperature.png" alt="Temperature chart for the July 30, 2026 North Port, Florida recording; the chart contains no plotted readings"></figure>
-      <figure class="card"><h3>Pressure</h3><img class="chart-image" src="images/pressure.png" alt="Pressure chart for the July 30, 2026 North Port, Florida recording"></figure>
+      <a class="download" href="2026-07-30-north-port/csv/weather_data.csv" download>Download the North Port weather CSV</a>
+      <figure class="card"><h3>Humidity</h3><img class="chart-image" src="2026-07-30-north-port/images/humidity.png" alt="Humidity chart for the July 30, 2026 North Port, Florida recording"></figure>
+      <figure class="card"><h3>Lightning Distance</h3><img class="chart-image" src="2026-07-30-north-port/images/lightning_distance.png" alt="Lightning distance chart for the July 30, 2026 North Port, Florida recording"></figure>
+      <figure class="card"><h3>Pressure</h3><img class="chart-image" src="2026-07-30-north-port/images/pressure.png" alt="Pressure chart for the July 30, 2026 North Port, Florida recording"></figure>
       <p class="note">The temperature readings in the provided CSV are blank, and the temperature image has no plotted data. The image files currently use the uploaded names in the images folder.</p>
     </section>
 
-    <footer>Weather observations are personal records and are not an official forecast or severe-weather warning.</footer>
+    <footer>Weather observations are personal records from the BME280 or other methods of recording.</footer>
   </main>
   <script>
     const temeculaCharts = [
